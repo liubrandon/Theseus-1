@@ -22,3 +22,14 @@ path = "../kernel_config"
 
 [dependencies.block_allocator]
 path = "../block_allocator"
+
+[dependencies.hashbrown]
+version = "0.1.8"
+features = ["nightly"]
+
+[dependencies.lazy_static]
+features = ["spin_no_std"]
+version = "1.4.0"
+
+[dependencies.task]
+path = "../task"

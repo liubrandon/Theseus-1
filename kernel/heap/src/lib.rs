@@ -5,12 +5,15 @@
 #![feature(allocator_api)]
 #![no_std]
 
+#[macro_use] extern crate lazy_static;
 extern crate alloc;
 extern crate irq_safety; 
 extern crate spin;
 extern crate memory;
 extern crate kernel_config;
 extern crate block_allocator;
+extern crate task;
+extern crate hashbrown;
 
 use alloc::alloc::{GlobalAlloc, Layout};
 use memory::EntryFlags;
@@ -19,7 +22,11 @@ use irq_safety::MutexIrqSafe;
 use spin::Once;
 use alloc::boxed::Box;
 use block_allocator::FixedSizeBlockAllocator;
+use hashbrown::HashMap;
 
+lazy_static! {
+    static ref HEAP_MAP: MutexIrqSafe<HashMap<usize, usize>> = MutexIrqSafe::new(HashMap::new());
+}
 
 #[global_allocator]
 pub static GLOBAL_ALLOCATOR: Heap = Heap::empty();
@@ -61,6 +68,19 @@ pub struct Heap {
     initial_allocator: MutexIrqSafe<block_allocator::FixedSizeBlockAllocator>, 
 }
 
+/// Helper function to get the PID of current task
+/// from Theseus/applications/bm/src/lib.rs
+fn getpid() -> usize {
+	let taskref = match task::get_my_current_task() {
+        Some(t) => t,
+        None => {
+            //info!("failed to get current task");
+            return 0;
+        }
+    };
+
+    taskref.id
+}
 
 impl Heap {
     /// Returns a heap in which only an empty initial allocator has been created.
@@ -72,8 +92,16 @@ impl Heap {
 }
 
 unsafe impl GlobalAlloc for Heap {
-
+    
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        let pid = getpid();
+        if pid > 0 {
+            let alloc_size = match HEAP_MAP.lock().get(&pid) {
+                Some(size) => { *size }
+                None => { 0 }
+            };
+            HEAP_MAP.lock().insert(pid, alloc_size + layout.size()); 
+        }
         match DEFAULT_ALLOCATOR.get() {
             Some(allocator) => {
                 allocator.alloc(layout)
@@ -95,4 +123,12 @@ unsafe impl GlobalAlloc for Heap {
         }
     }
 
+}
+
+pub fn get_alloc_size(pid: usize) -> usize {
+    let alloc_size = match HEAP_MAP.lock().get(&pid) {
+        Some(size) => { *size }
+        None => { 0 }
+    };
+    alloc_size
 }
