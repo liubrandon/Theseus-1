@@ -112,7 +112,6 @@ pub fn get_task(task_id: usize) -> Option<TaskRef> {
     TASKLIST.lock().get(&task_id).cloned()
 }
 
-
 /// Sets the kill handler function for the current `Task`
 pub fn set_my_kill_handler(handler: KillHandler) -> Result<(), &'static str> {
     get_my_current_task()
@@ -278,6 +277,7 @@ pub struct TaskInner {
 /// Only fields that do not permit interior mutability can safely be exposed as public
 /// because we allow foreign crates to directly access task struct fields.
 pub struct Task {
+    
     /// The mutable parts of a `Task` struct that can be modified after task creation,
     /// excluding private items that can be modified atomically.
     ///
@@ -367,6 +367,12 @@ impl Task {
     /// This does not run the task, schedule it in, or switch to it.
     /// 
     /// However, it requires tasking to already be set up, i.e., the current task must be known.
+    
+    pub fn get_stack_size(&self) -> usize {
+        let bottom = &self.inner.lock().kstack.bottom();
+        bottom.value() - &self.inner.lock().saved_sp
+    }
+
     pub fn new(
         kstack: Option<Stack>,
         failure_cleanup_function: FailureCleanupFunction

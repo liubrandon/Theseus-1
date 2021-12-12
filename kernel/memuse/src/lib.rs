@@ -13,6 +13,11 @@ pub fn memuse(task_id: usize, mem_type: i8) -> Result<(), String> {
     let task_ref = task::get_task(task_id);
     match task_ref {
         Some(_x) => {
+            match mem_type {
+                1 => {
+                    task_ref.deref().get_task_stack_size()
+                }
+            }
             Ok(())
         }
         _ => {
