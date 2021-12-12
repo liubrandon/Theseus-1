@@ -1576,6 +1576,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "memuse"
+version = "0.1.0"
+dependencies = [
+ "debugit",
+ "getopts",
+ "log",
+ "runqueue",
+ "task",
+ "terminal_print",
+]
+
+[[package]]
 name = "mkdir"
 version = "0.1.0"
 dependencies = [
@@ -1747,6 +1759,24 @@ dependencies = [
  "stable_deref_trait 1.1.1 (git+https://github.com/theseus-os/stable_deref_trait.git?branch=spin)",
  "task",
  "wait_queue",
+]
+
+[[package]]
+name = "my_hello"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "terminal_print",
+]
+
+[[package]]
+name = "my_test"
+version = "0.1.0"
+dependencies = [
+ "debugit",
+ "log",
+ "memuse",
+ "terminal_print",
 ]
 
 [[package]]

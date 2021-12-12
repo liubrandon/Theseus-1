@@ -1,0 +1,23 @@
+[package]
+name = "my_test"
+version = "0.1.0"
+authors = ["Brandon Liu <byliu88@gmail.com>"]
+build = "../../build.rs"
+
+[dependencies]
+
+
+[dependencies.log]
+version = "0.4.8"
+
+[dependencies.debugit]
+path = "../../libs/debugit"
+
+[dependencies.terminal_print]
+path = "../../kernel/terminal_print"
+
+[dependencies.memuse]
+path = "../../kernel/memuse"
+
+# [dependencies.application_main_fn]
+# path = "../../compiler_plugins"
