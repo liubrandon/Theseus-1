@@ -286,7 +286,8 @@ pub struct Task {
     ///
     /// This is not public because it permits interior mutability.
     inner: MutexIrqSafe<TaskInner>,
-
+    
+    pub heap_size: MutexIrqSafe<usize>,
     /// The unique identifier of this Task.
     pub id: usize,
     /// The simple name of this Task.
@@ -369,8 +370,8 @@ impl Task {
     /// However, it requires tasking to already be set up, i.e., the current task must be known.
     
     pub fn get_stack_size(&self) -> usize {
-        let bottom = &self.inner.lock().kstack.bottom();
-        bottom.value() - &self.inner.lock().saved_sp
+        let top = &self.inner.lock().kstack.top_usable();
+        top.value() - &self.inner.lock().saved_sp
     }
 
     pub fn new(

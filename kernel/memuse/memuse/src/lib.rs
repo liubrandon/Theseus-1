@@ -1,10 +1,9 @@
 #![no_std]
 #[macro_use] extern crate alloc;
 #[macro_use] extern crate log;
-#[macro_use] extern crate terminal_print;
+
 extern crate task;
 
-use core::ops::Deref;
 use alloc::string::String;
 
 pub fn memuse(task_id: usize, mem_type: i8) -> Result<(), String> {
@@ -13,16 +12,7 @@ pub fn memuse(task_id: usize, mem_type: i8) -> Result<(), String> {
     info!("mem_type: {}\n", mem_type);
     let task_ref = task::get_task(task_id);
     match task_ref {
-        Some(tr) => {
-            let result = match mem_type {
-                1 => {
-                    tr.deref().get_stack_size()
-                }
-                _ => {
-                    return Err(format!("Only mem_type 0 (heap) and 1 (stack) supported"));
-                }
-            };
-            println!("Stack size is: {}\n", result);
+        Some(_x) => {
             Ok(())
         }
         _ => {

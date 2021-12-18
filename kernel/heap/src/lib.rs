@@ -22,11 +22,11 @@ use irq_safety::MutexIrqSafe;
 use spin::Once;
 use alloc::boxed::Box;
 use block_allocator::FixedSizeBlockAllocator;
-use hashbrown::HashMap;
 
+/*
 lazy_static! {
     static ref HEAP_MAP: MutexIrqSafe<HashMap<usize, usize>> = MutexIrqSafe::new(HashMap::new());
-}
+}*/
 
 #[global_allocator]
 pub static GLOBAL_ALLOCATOR: Heap = Heap::empty();
@@ -94,14 +94,14 @@ impl Heap {
 unsafe impl GlobalAlloc for Heap {
     
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        let pid = getpid();
-        if pid > 0 {
+  //      let pid = getpid();
+        /*if pid > 0 {
             let alloc_size = match HEAP_MAP.lock().get(&pid) {
                 Some(size) => { *size }
                 None => { 0 }
             };
             HEAP_MAP.lock().insert(pid, alloc_size + layout.size()); 
-        }
+        }*/
         match DEFAULT_ALLOCATOR.get() {
             Some(allocator) => {
                 allocator.alloc(layout)
@@ -124,11 +124,11 @@ unsafe impl GlobalAlloc for Heap {
     }
 
 }
-
+/*
 pub fn get_alloc_size(pid: usize) -> usize {
     let alloc_size = match HEAP_MAP.lock().get(&pid) {
         Some(size) => { *size }
         None => { 0 }
     };
     alloc_size
-}
+}*/
