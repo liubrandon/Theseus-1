@@ -229,6 +229,10 @@ impl fmt::Debug for OptionU8 {
     }
 }
 
+pub struct TaskHeapSize {
+    pub heap_size: usize,
+}
+
 /// The parts of a `Task` that may be modified after its creation.
 ///
 /// This includes only the parts that cannot be modified atomically.
@@ -287,7 +291,7 @@ pub struct Task {
     /// This is not public because it permits interior mutability.
     inner: MutexIrqSafe<TaskInner>,
     
-    pub heap_size: MutexIrqSafe<usize>,
+    pub heap_struct: MutexIrqSafe<TaskHeapSize>,
     /// The unique identifier of this Task.
     pub id: usize,
     /// The simple name of this Task.
@@ -426,6 +430,9 @@ impl Task {
                 env,
                 restart_info: None,
             }),
+            heap_struct: MutexIrqSafe::new(TaskHeapSize {
+                heap_size: 0,
+            }),
             id: task_id,
             name: format!("task_{}", task_id),
             runstate: AtomicCell::new(RunState::Initing),
@@ -522,6 +529,10 @@ impl Task {
     /// no locks must be obtained. 
     pub fn inner_mut(&mut self) -> &mut TaskInner {
         self.inner.get_mut()
+    }
+
+    pub fn heap_mut(&mut self) -> &mut TaskHeapSize {
+        self.heap_struct.get_mut()
     }
 
     /// Exposes read-only access to this `Task`'s [`RestartInfo`] by invoking

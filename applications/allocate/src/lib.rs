@@ -25,6 +25,7 @@ fn recurse(allocated: u128, depth: u128) -> Result<(), &'static str> {
     let mut stdin = app_io::stdin()?;
     let mut arr: [char; 4097] = ['a'; 4097];
     arr[10] = 'b';
+    let _str = String::from("aslkdjalskdjalskjdlaskjdlakjsdlaksjdlaksjdlaksjdlaskjdalskdjalskjdalskdjalskdjalskdjalskdjalskdjalskdjlaskdjalskjdalksjdlakjsdlakjs");
     let mut buf = String::new();
     let _cnt = stdin.read_line(&mut buf).or(Err("failed to perform read_line"))?;
     buf.clear();

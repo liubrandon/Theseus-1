@@ -5,7 +5,7 @@
 #![feature(allocator_api)]
 #![no_std]
 
-#[macro_use] extern crate lazy_static;
+//#[macro_use] extern crate lazy_static;
 extern crate alloc;
 extern crate irq_safety; 
 extern crate spin;
@@ -94,16 +94,13 @@ impl Heap {
 unsafe impl GlobalAlloc for Heap {
     
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-  //      let pid = getpid();
-        /*if pid > 0 {
-            let alloc_size = match HEAP_MAP.lock().get(&pid) {
-                Some(size) => { *size }
-                None => { 0 }
-            };
-            HEAP_MAP.lock().insert(pid, alloc_size + layout.size()); 
-        }*/
         match DEFAULT_ALLOCATOR.get() {
             Some(allocator) => {
+                let pid = getpid();
+                if pid > 0 {
+                    let task_ref = task::get_task(pid).ok_or("could not get task_re");
+                    task_ref.unwrap().heap_mut().heap_size += layout.size();
+                }
                 allocator.alloc(layout)
             }
             None => {       
@@ -112,8 +109,13 @@ unsafe impl GlobalAlloc for Heap {
         }
     }
 
-    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) { 
         if (ptr as usize) < INITIAL_HEAP_END_ADDR {
+            let pid = getpid();
+            if pid > 0 {
+                let task_ref = task::get_task(pid).ok_or("could not get task_re");
+                task_ref.unwrap().heap_mut().heap_size -= layout.size();
+            }
             self.initial_allocator.lock().deallocate(ptr, layout);
         }
         else {

@@ -15,6 +15,9 @@ pub fn memuse(task_id: usize, mem_type: i8) -> Result<(), String> {
     match task_ref {
         Some(tr) => {
             let result = match mem_type {
+                0 => {
+                    tr.heap_struct.lock().heap_size
+                }
                 1 => {
                     tr.deref().get_stack_size()
                 }
@@ -22,7 +25,7 @@ pub fn memuse(task_id: usize, mem_type: i8) -> Result<(), String> {
                     return Err(format!("Only mem_type 0 (heap) and 1 (stack) supported"));
                 }
             };
-            println!("Stack size is: {}\n", result);
+            println!("Requested memory size is: {}\n", result);
             Ok(())
         }
         _ => {
