@@ -5,7 +5,7 @@
 #![feature(allocator_api)]
 #![no_std]
 
-//#[macro_use] extern crate lazy_static;
+#[macro_use] extern crate lazy_static;
 extern crate alloc;
 extern crate irq_safety; 
 extern crate spin;
@@ -23,10 +23,11 @@ use spin::Once;
 use alloc::boxed::Box;
 use block_allocator::FixedSizeBlockAllocator;
 
-/*
+
 lazy_static! {
-    static ref HEAP_MAP: MutexIrqSafe<HashMap<usize, usize>> = MutexIrqSafe::new(HashMap::new());
-}*/
+    static ref HEAP_MAP: MutexIrqSafe<[usize; 100]> = MutexIrqSafe::new([0; 100]);
+    static ref HEAP_MAP_SIZE: usize = HEAP_MAP.lock().len();
+}
 
 #[global_allocator]
 pub static GLOBAL_ALLOCATOR: Heap = Heap::empty();
@@ -97,9 +98,8 @@ unsafe impl GlobalAlloc for Heap {
         match DEFAULT_ALLOCATOR.get() {
             Some(allocator) => {
                 let pid = getpid();
-                if pid > 0 {
-                    let task_ref = task::get_task(pid).ok_or("could not get task_re");
-                    task_ref.unwrap().heap_mut().heap_size += layout.size();
+                if pid > 0 && pid < *HEAP_MAP_SIZE {
+                    HEAP_MAP.lock()[pid]+= layout.size();
                 }
                 allocator.alloc(layout)
             }
@@ -112,9 +112,8 @@ unsafe impl GlobalAlloc for Heap {
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) { 
         if (ptr as usize) < INITIAL_HEAP_END_ADDR {
             let pid = getpid();
-            if pid > 0 {
-                let task_ref = task::get_task(pid).ok_or("could not get task_re");
-                task_ref.unwrap().heap_mut().heap_size -= layout.size();
+            if pid > 0 && pid < *HEAP_MAP_SIZE {
+                HEAP_MAP.lock()[pid] -= layout.size();
             }
             self.initial_allocator.lock().deallocate(ptr, layout);
         }
@@ -126,11 +125,7 @@ unsafe impl GlobalAlloc for Heap {
     }
 
 }
-/*
-pub fn get_alloc_size(pid: usize) -> usize {
-    let alloc_size = match HEAP_MAP.lock().get(&pid) {
-        Some(size) => { *size }
-        None => { 0 }
-    };
-    alloc_size
-}*/
+
+pub fn get_heap_size(pid: usize) -> usize {
+    HEAP_MAP.lock()[pid]
+}

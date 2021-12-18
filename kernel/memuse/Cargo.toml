@@ -7,6 +7,9 @@ build = "../../build.rs"
 [dependencies]
 getopts = "0.2.21"
 
+[dependencies.heap]
+path = "../heap"
+
 [dependencies.debugit]
 path = "../../libs/debugit"
 

@@ -3,6 +3,7 @@
 #[macro_use] extern crate log;
 #[macro_use] extern crate terminal_print;
 extern crate task;
+extern crate heap;
 
 use core::ops::Deref;
 use alloc::string::String;
@@ -16,7 +17,7 @@ pub fn memuse(task_id: usize, mem_type: i8) -> Result<(), String> {
         Some(tr) => {
             let result = match mem_type {
                 0 => {
-                    tr.heap_struct.lock().heap_size
+                    heap::get_heap_size(task_id)
                 }
                 1 => {
                     tr.deref().get_stack_size()
